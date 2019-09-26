@@ -112,7 +112,7 @@
         </div>
 
         <div class="col-sm-2">
-          <b-spinner variant="primary" label="Spinning"></b-spinner>
+          <b-spinner v-show="!connect.isSending" variant="primary" label="Spinning"></b-spinner>
           <div class="mr-up">
             <v-radio-group v-model="connect.delay" :dark=true label="Задержка">
               <v-radio :value='0' label="нет" color="blue"></v-radio>
