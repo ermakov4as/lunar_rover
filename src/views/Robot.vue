@@ -18,11 +18,14 @@
           </v-btn>
           <v-container fluid>
             <v-switch v-model="led.light" @change="led.changeLight" class="ma-4" label="Свет" color="orange darken-3" :dark=true></v-switch>
-            <v-radio-group v-model="motors.rotation" :dark=true>
+            <v-radio-group v-model="motors.rotation" :dark=true @change="motors.calculatePwr()">
               <v-radio value="normal" label="Равномерный поворот" color="blue"></v-radio>
-              <v-radio value="faster" label="Поворот с забеганием" color="blue"></v-radio>
-              <v-radio value="slower" label="Поворот с запаздыванием" color="blue"></v-radio>
+              <v-radio value="faster" label="Поворот с забеганием" color="blue"
+                  :disabled="!motors.isMoving.up&&!motors.isMoving.down&&(motors.isMoving.left||motors.isMoving.right)"></v-radio>
+              <v-radio value="slower" label="Поворот с запаздыванием" color="blue"
+                  :disabled="!motors.isMoving.up&&!motors.isMoving.down&&(motors.isMoving.left||motors.isMoving.right)"></v-radio>
             </v-radio-group>
+            {{ motors.rotation }}
           </v-container>
         </div>
 
@@ -39,7 +42,8 @@
                   <div class="flex-grow-1"></div>
                 </v-toolbar>
                 <v-card-text>
-                  <v-slider v-model="motors.power" track-color="grey" min="0" max="100" thumb-color="blue" thumb-label :thumb-size="24">
+                  <v-slider v-model="motors.power" track-color="grey" min="0" max="100" thumb-color="blue" thumb-label :thumb-size="24"
+                      @change="motors.calculatePwr()">
                     <template v-slot:prepend>
                       <v-icon @click="motors.power -= 1" color="red">mdi-minus</v-icon>
                     </template>
@@ -49,10 +53,22 @@
                   </v-slider>
                 </v-card-text>
               </v-card>
+              <v-card-text>
+                <v-slider :dark=true v-model="motors.turn" track-color="grey" label="Коэффициент поворота (х10)" min="0" max="10"
+                    thumb-color="blue" thumb-label :thumb-size="24" @change="motors.calculatePwr()">
+                </v-slider>
+              </v-card-text>
             </div>
 
             <div class="col-sm-4 text-white">
-              <v-card-text>
+              <v-toolbar-items>
+                <v-btn text :dark=true @click="{ showOnRobot = false }" class="nav-border"
+                    :class="{ 'active-nav-border': !showOnRobot }">На управлении</v-btn>
+                <v-btn text :dark=true @click="{ showOnRobot = true }" class="nav-border"
+                    :class="{ 'active-nav-border': showOnRobot }">На роботе</v-btn>
+              </v-toolbar-items>
+
+              <v-card-text v-if="!showOnRobot">
                 <v-slider :dark=true v-model="motors.leftPower" track-color="grey" label="Left" :readonly=true min="-100" max="100" :rules="rules">
                   <template v-slot:append>
                     <v-icon v-if="motors.leftPower>=0" class="subheading">arrow_upward</v-icon>
@@ -68,13 +84,31 @@
                   </template>
                 </v-slider>
               </v-card-text>
+
+              <v-card-text v-else>
+                <v-slider :dark=true v-model="motors.robotLeftPower" track-color="grey" label="Left" :readonly=true min="-100" max="100" :rules="rules">
+                  <template v-slot:append>
+                    <v-icon v-if="motors.robotLeftPower>=0" class="subheading">arrow_upward</v-icon>
+                    <v-icon v-else class="subheading text-red">arrow_downward</v-icon>
+                    <span class="subheading"> {{ Math.abs(motors.robotLeftPower) }}%</span>
+                  </template>
+                </v-slider>
+                <v-slider :dark=true v-model="motors.robotRightPower" track-color="grey" label="Right" :readonly=true min="-100" max="100" :rules="rules">
+                  <template v-slot:append>
+                    <v-icon v-if="motors.robotRightPower>=0" class="subheading">arrow_upward</v-icon>
+                    <v-icon v-else class="subheading text-red">arrow_downward</v-icon>
+                    <span class="subheading"> {{ Math.abs(motors.robotRightPower) }}%</span>
+                  </template>
+                </v-slider>
+              </v-card-text>
             </div>
 
           </div>
 
             <v-card class="d-flex justify-center mb-6 bg-inherit" flat tile>
               <v-card class="pa-2 bg-inherit" outlined tile>
-                <v-btn outlined color="indigo" fab x-large dark :ripple="{ class: 'red--text' }">
+                <v-btn :outlined="!motors.isMoving.up" color="indigo" fab x-large dark
+                    :ripple="{ class: 'red--text' }" @click="motors.moveUp()">
                   <v-icon>arrow_upward</v-icon>
                 </v-btn>
               </v-card>
@@ -83,18 +117,21 @@
             <v-card class="d-flex justify-space-around mb-6 bg-inherit" flat tile>
               <v-card class="pa-2 bg-inherit" outlined tile></v-card>
               <v-card class="pa-2 bg-inherit" outlined tile>
-                <v-btn outlined color="indigo" fab x-large dark :ripple="{ class: 'red--text' }">
+                <v-btn :outlined="!motors.isMoving.left" color="indigo" fab x-large dark
+                    :ripple="{ class: 'red--text' }" @click="motors.moveLeft()">
                   <v-icon v-if="motors.isMoving.up || motors.isMoving.down">arrow_back</v-icon>
                   <v-icon v-else>rotate_left</v-icon>
                 </v-btn>
               </v-card>
               <v-card class="pa-2 bg-inherit" outlined tile>
-                <v-btn outlined color="indigo" fab x-large dark :ripple="{ class: 'red--text' }">
+                <v-btn :outlined="motors.isMoving.down||motors.isMoving.up||motors.isMoving.left||motors.isMoving.right"
+                    color="error" fab x-large dark :ripple="{ class: 'red--text' }" @click="motors.stop()">
                   <v-icon>cancel</v-icon>
                 </v-btn>
               </v-card>
               <v-card class="pa-2 bg-inherit" outlined tile>
-                <v-btn outlined color="indigo" fab x-large dark :ripple="{ class: 'red--text' }">
+                <v-btn :outlined="!motors.isMoving.right" color="indigo" fab x-large dark
+                    :ripple="{ class: 'red--text' }" @click="motors.moveRight()">
                   <v-icon v-if="motors.isMoving.up || motors.isMoving.down">arrow_forward</v-icon>
                   <v-icon v-else>rotate_right</v-icon>
                 </v-btn>
@@ -104,7 +141,8 @@
 
             <v-card class="d-flex justify-center mb-6 bg-inherit" flat tile>
               <v-card class="pa-2 bg-inherit" outlined tile>
-                <v-btn outlined color="indigo" fab x-large dark :ripple="{ class: 'red--text' }">
+                <v-btn :outlined="!motors.isMoving.down" color="indigo" fab x-large dark
+                    :ripple="{ class: 'red--text' }" @click="motors.moveDown()">
                   <v-icon>arrow_downward</v-icon>
                 </v-btn>
               </v-card>
@@ -112,7 +150,7 @@
         </div>
 
         <div class="col-sm-2">
-          <b-spinner v-show="!connect.isSending" variant="primary" label="Spinning"></b-spinner>
+          <b-spinner v-show="connect.isSending" variant="primary" label="Spinning"></b-spinner>
           <div class="mr-up">
             <v-radio-group v-model="connect.delay" :dark=true label="Задержка">
               <v-radio :value='0' label="нет" color="blue"></v-radio>
@@ -143,7 +181,8 @@ export default {
     return {
       rules: [
         v => v >= 0 || ""
-      ]
+      ],
+      showOnRobot: false
     }
   },
   created () {
@@ -153,6 +192,12 @@ export default {
 </script>
 
 <style scoped>
+.nav-border {
+  border-radius: 2px;
+}
+.active-nav-border {
+  border: 1px solid #3f51b5;
+}
 .bg-inherit {
   background-color: inherit;
 }
