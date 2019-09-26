@@ -18,3 +18,9 @@ export default {
   name: 'App'
 }
 </script>
+
+<style>
+.lune {
+  background-image: url('./assets/lune_v2.png')
+}
+</style>

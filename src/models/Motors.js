@@ -1,7 +1,7 @@
 import Connect from './Connect'
 
 export default {
-  rotation: null,
+  rotation: 'normal',
   power: 50,
   isMoving: {
     up: false,
@@ -9,6 +9,8 @@ export default {
     left: false,
     right: false
   },
+  leftPower: -20, // TODO:
+  rightPower: 70, // TODO:
   test () {
     let code = 123
     let a = Uint8Array.of(code, code)

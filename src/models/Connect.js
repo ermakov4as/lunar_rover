@@ -9,6 +9,8 @@ export default {
   isConnected: true, // false, // TODO:
   toggleLigthCharacteristic: undefined,
   myDevice: undefined,
+  delay: 1,
+  isSending: false,
   checkBrowser () {
     if (!navigator.bluetooth) {
       ntf.error('Данный браузер не поддерживает Bluetooth API')
