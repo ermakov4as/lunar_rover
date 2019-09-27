@@ -43,6 +43,12 @@ export default {
       })
   },
   disconnectBlut () {
+    if (this.led.light) {
+      this.led.light = false
+      this.led.changeLight()
+    }
+    if (this.motors.leftPower !== 0 || this.motors.rightPower !== 0) this.motors.stop()
+    if (this.motors.rotation !== 'normal') this.motors.rotation = 'normal'
     LED.lightOffHandler()
       .then(() => {
         this.myDevice.gatt.disconnect()
