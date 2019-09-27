@@ -3,7 +3,11 @@ import Connect from './Connect'
 export default {
   light: false,
   changeLight () {
-    // Connect.toggleLigthCharacteristic.writeValue(Uint8Array.of(0))
+    let _light
+    if (this.light) _light = 1
+    else _light = 0
+    let _data = Uint8Array.of(2, _light)
+    Connect.sendWithDelay('light', _data)
   },
   lightOffHandler () {
     return Connect.toggleLigthCharacteristic.writeValue(Uint8Array.of(0))

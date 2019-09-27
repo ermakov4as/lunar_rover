@@ -1,12 +1,14 @@
 import LED from './LED'
 import { ntf } from '@/services'
+import Motors from './Motors'
 
 const MY_BLUETOOTH_NAME = 'HMSoft'
 const SEND_SERVICE = 0xFFE0
 const SEND_SERVICE_CHARACTERISTIC = 0xFFE1
 
 export default {
-  isConnected: true, // false, // TODO:
+  devModeFlag: false,
+  isConnected: false,
   toggleLigthCharacteristic: undefined,
   myDevice: undefined,
   delay: 1,
@@ -49,5 +51,21 @@ export default {
         this.myDevice = undefined
         ntf.warn('Bluetooth-устройство отключено')
       })
+  },
+  sendWithDelay (mode, data) {
+    setTimeout(() => {
+      console.log(data)
+      if (!this.devModeFlag) {
+        this.toggleLigthCharacteristic.readValue()
+          .then(currentCode => {
+            let convertedCode = currentCode.getUint8(0)
+            this.toggleLigthCharacteristic.writeValue(Uint8Array.of(convertedCode === data ? 0 : data))
+          })
+      }
+      if (mode === 'motors') {
+        Motors.robotLeftPower = Motors.leftPower
+        Motors.robotRightPower = Motors.rightPower
+      }
+    }, (this.delay * 1000))
   }
 }

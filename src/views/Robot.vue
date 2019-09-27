@@ -17,7 +17,7 @@
             <v-icon>bluetooth_disabled</v-icon>
           </v-btn>
           <v-container fluid>
-            <v-switch v-model="led.light" @change="led.changeLight" class="ma-4" label="Свет" color="orange darken-3" :dark=true></v-switch>
+            <v-switch v-model="led.light" @change="led.changeLight()" class="ma-4" label="Свет" color="orange darken-3" :dark=true></v-switch>
             <v-radio-group v-model="motors.rotation" :dark=true @change="motors.calculatePwr()">
               <v-radio value="normal" label="Равномерный поворот" color="blue"></v-radio>
               <v-radio value="faster" label="Поворот с забеганием" color="blue"
@@ -25,7 +25,6 @@
               <v-radio value="slower" label="Поворот с запаздыванием" color="blue"
                   :disabled="!motors.isMoving.up&&!motors.isMoving.down&&(motors.isMoving.left||motors.isMoving.right)"></v-radio>
             </v-radio-group>
-            {{ motors.rotation }}
           </v-container>
         </div>
 
@@ -162,13 +161,6 @@
         </div>
 
       </div>
-
-      <!-- -->
-
-      <br>
-      <button @click.prevent="motors.test" style="color:red;">TEST</button>
-      <br>
-      <br>
     </div>
   </div>
 </template>
@@ -180,6 +172,7 @@ export default {
   data () {
     return {
       rules: [
+        // eslint-disable-next-line
         v => v >= 0 || ""
       ],
       showOnRobot: false
