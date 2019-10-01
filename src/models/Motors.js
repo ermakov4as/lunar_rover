@@ -69,7 +69,7 @@ export default {
       else if (this.rotation === 'faster') this.calculateRotateFaster(_dir, _turn)
       else if (this.rotation === 'slower') this.calculateRotateSlower(_dir, _turn)
     }
-    let _data = Uint8Array.of(1, this.leftPower, this.rightPower)
+    let _data = this.transformDataToUnsigned()
     Connect.sendWithDelay('motors', _data)
   },
   calculateStop () {
@@ -124,5 +124,13 @@ export default {
       this.rightPower = _dir * this.power * (1 - 2 * _turn)
       this.leftPower = _dir * this.power
     }
+  },
+  transformDataToUnsigned () {
+    let _leftPower = this.leftPower
+    let _rightPower = this.rightPower
+    if (_leftPower < 0) _leftPower = _leftPower * (-1) + 110
+    if (_rightPower < 0) _rightPower = _rightPower * (-1) + 110
+    let _data = Uint8Array.of(3, _leftPower, _rightPower)
+    return _data
   }
 }

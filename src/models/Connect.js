@@ -62,11 +62,13 @@ export default {
     setTimeout(() => {
       console.log(data)
       if (!this.devModeFlag) {
-        this.toggleLigthCharacteristic.readValue()
+        /* this.toggleLigthCharacteristic.writeValue(Int8Array.of(data)) */
+        this.toggleLigthCharacteristic.writeValue(data)
+        /* this.toggleLigthCharacteristic.readValue()
           .then(currentCode => {
             let convertedCode = currentCode.getUint8(0)
-            this.toggleLigthCharacteristic.writeValue(Uint8Array.of(convertedCode === data ? 0 : data))
-          })
+            this.toggleLigthCharacteristic.writeValue(Int8Array.of(convertedCode === data ? 0 : data))
+          }) */
       }
       if (mode === 'motors') {
         Motors.robotLeftPower = Motors.leftPower

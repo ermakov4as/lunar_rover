@@ -1,5 +1,5 @@
 Uint8Array.of(mode, params)
-mode {1 - motors, 2 - light}
+mode {3 - motors, 2 - light}
 
 params {
   motors[ Uint8Array.of(1, pwr_l, pwr_r) ] => pwr(_l/_r) {-100 ... 100}
