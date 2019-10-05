@@ -1,6 +1,6 @@
-import LED from './LED'
 import { ntf } from '@/services'
 import Motors from './Motors'
+import LED from './LED'
 
 const MY_BLUETOOTH_NAME = 'HMSoft'
 const SEND_SERVICE = 0xFFE0
@@ -37,26 +37,40 @@ export default {
         this.toggleLigthCharacteristic = characteristic
         this.isConnected = true
         ntf.success('Успешно подключено к HM-10')
+        // eslint-disable-next-line
+        let m_data = Uint8Array.of(3, 0, 0)
+        this.sendWithDelay('motors', m_data)
       })
       .catch(error => {
         console.error(error)
       })
   },
   disconnectBlut () {
-    if (this.led.light) {
-      this.led.light = false
-      this.led.changeLight()
+    let _delay = this.delay
+    this.delay = 0
+    // eslint-disable-next-line
+    let m_data = Uint8Array.of(3, 0, 0)
+    this.sendWithDelay('motors', m_data)
+    // eslint-disable-next-line
+    let l_data = Uint8Array.of(2, 0)
+    this.sendWithDelay('light', l_data)
+    this.delay = _delay
+    if (LED.light) {
+      LED.light = false
+      LED.changeLight()
     }
-    if (this.motors.leftPower !== 0 || this.motors.rightPower !== 0) this.motors.stop()
-    if (this.motors.rotation !== 'normal') this.motors.rotation = 'normal'
-    LED.lightOffHandler()
-      .then(() => {
-        this.myDevice.gatt.disconnect()
-        this.isConnected = false
-        this.toggleLigthCharacteristic = undefined
-        this.myDevice = undefined
-        ntf.warn('Bluetooth-устройство отключено')
-      })
+    if (Motors.leftPower !== 0 || Motors.rightPower !== 0) Motors.stop()
+    if (Motors.rotation !== 'normal') Motors.rotation = 'normal'
+    setTimeout(() => {
+      LED.lightOffHandler()
+        .then(() => {
+          this.myDevice.gatt.disconnect()
+          this.isConnected = false
+          this.toggleLigthCharacteristic = undefined
+          this.myDevice = undefined
+          ntf.warn('Bluetooth-устройство отключено')
+        })
+    }, 1000)
   },
   sendWithDelay (mode, data) {
     setTimeout(() => {
